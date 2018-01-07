@@ -80,8 +80,7 @@ def testPokerStartingHands():
     cost = compute_cost(AL, test_y)
     print("Testing set error:  " + '{:06.3f}'.format(cost*100) + "%")
 
-
-def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 3000, print_cost=False, plotGraph = False):#lr was 0.009
+def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 3000, print_cost=False, plotGraph = False, params = None):
     """
     Implements a L-layer neural network: [LINEAR->RELU]*(L-1)->LINEAR->SIGMOID.
     
@@ -101,7 +100,10 @@ def L_layer_model(X, Y, layers_dims, learning_rate = 0.0075, num_iterations = 30
     costs = []                         # keep track of cost
     
     # Parameters initialization.
-    parameters = initialize_parameters_deep(layers_dims)
+    if params == None:
+        parameters = initialize_parameters_deep(layers_dims)
+    else:
+        parameters = params
     
     # Loop (gradient descent)
     for i in range(0, num_iterations):
