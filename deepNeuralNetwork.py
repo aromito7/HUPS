@@ -8,7 +8,7 @@ from scipy import ndimage
 from dnn_app_utils_v2 import *
 #from tempfile import TemporaryFile
 
-def generateStartingHands(startingHands, test = True):    
+def generateStartingHands(startingHands, test = False):    
     #startingHands = np.load(outfile)  #No longer using tempfile
 
     pokerHands, results, testPokerHands, testResults = [],[],[],[]
@@ -17,29 +17,30 @@ def generateStartingHands(startingHands, test = True):
 
     for y in range(13):
         for x in range(13):
-            hand = [0, 0, 0, 0]
-            ev = startingHands[y][x]
+            for z in range(len(startingHands[y][x])):
+                hand = [0, 0, 0, 0, z]
+                ev = startingHands[y][x][z]
 
-            if x > y: 
-                hand[2] = 1
-                lowest = 12 - x
-                highest = 12 - y
-            else:
-                lowest = 12 - y
-                highest = 12 - x
+                if x > y: 
+                    hand[2] = 1
+                    lowest = 12 - x
+                    highest = 12 - y
+                else:
+                    lowest = 12 - y
+                    highest = 12 - x
 
-            if highest == lowest: 
-                hand[3] = 1
+                if highest == lowest: 
+                    hand[3] = 1
 
-            hand[0] = highest/ 12.
-            hand[1] = lowest/ 12.
+                hand[0] = highest/ 12.
+                hand[1] = lowest/ 12.
 
-            if np.random.randint(10) == 0 and test:   
-                testPokerHands.append(hand)
-                testResults.append([ev])
-            else:
-                pokerHands.append(hand)
-                results.append([ev])
+                if np.random.randint(10) == 0 and test:   
+                    testPokerHands.append(hand)
+                    testResults.append([ev])
+                else:
+                    pokerHands.append(hand)
+                    results.append([ev])
                 
     pokerHands = np.array(pokerHands).T
     results = np.array(results).T

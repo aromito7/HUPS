@@ -4,9 +4,8 @@ class Game:
     players = []
     hands = []
     startingHands = []
-    chipCap = 1000
     output = True
-    outputDict = {'Text' : '', 'PlayerCards': {0: [], 1: []}, 'CommunityCards': [], 'Betting': []}
+    handDict = {}
     
     bigBlind = 10
     smallBlind = bigBlind / 2
@@ -20,13 +19,12 @@ class Game:
                 6: 'Trips', 7: 'Two Pair', 8: 'Pair', 9: 'High Card'}
     
     handsPlayed = 0.0
-    straightFlushes, quads, fullHouses, flushes, straights, trips, twoPairs, pairs, highCards = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-    preflopHandsWon = []
-    preflopHandsPlayed = []
-    preflopHandsPercentage = []
+    
 
     def __init__(self, players):
         self.players = players
+        for x in range(len(players)):
+            players[x].playerNumber = x
         self.deck = Deck()
         self.testHands()
         self.resetStatisticalData()
@@ -35,14 +33,6 @@ class Game:
         for n in range(len(self.players)):
             print("Player " + str(n+1) + ": " + str(self.players[n].chips) + " chips.")
     
-    def getHandTypeResults(self):
-        handResults = [self.straightFlushes, self.quads, self.fullHouses, self.flushes, self.straights, 
-                self.trips, self.twoPairs, self.pairs, self.highCards]
-        return [handResults[x]/ (self.handsPlayed * 2) for x in range(len(handResults))]
-    
-    def getHandPercentages(self):
-        preflopHandPercentage = [[self.preflopHandsWon[y][x]/self.preflopHandsPlayed[y][x] for x in range(13)] for y in range(13)]
-        return preflopHandPercentage
     
     def testHands(self):
         deck = Deck()
@@ -127,12 +117,9 @@ class Game:
                 print "We got a " + self.handType[hand[0]] + " with: " + str([str(hand[1][y]) for y in range(len(hand[1]))])
                 
     def printOutput(self, output):
-        self.outputDict['Text'] += str(output) + "\n"
+        self.handDict['Text'] += str(output) + "\n"
         if self.output :
             print output
-
-    def printCards(self, cards):
-        print [str(cards[x]) for x in range(len(cards))]
     
     def sortHands(self):
         self.printOutput("\nSorting Hands")
@@ -194,7 +181,7 @@ class Game:
                     straightCount += 1
                     if straightCount == 4: 
                         straightEnd = hand[x+1]
-                        hasStraight = True
+                        hasStraight = True 
                         if straightEnd.value == 14: 
                             hasWheel == True
                 else: straightCount = 0   
@@ -212,18 +199,7 @@ class Game:
                 else:
                     straightFlushCount = 1
                 #if x == len(flush)-2:
-        
-        #This is purely for collecting data and making sure that each type of hand is occuring the right % of the time
-        if hasStraightFlush: self.straightFlushes += 1
-        elif hasQuads: self.quads += 1
-        elif hasPair and hasTrips: self.fullHouses += 1
-        elif hasFlush: self.flushes += 1
-        elif hasStraight: self.straights += 1
-        elif hasTrips: self.trips += 1
-        elif hasPair:
-            if len(pairs) > 2: self.twoPairs +=1
-            else: self.pairs += 1
-        
+
         if hasStraightFlush: bestHand = [1, bestHand]
         elif hasQuads: bestHand = [2, quads + sorted(list((set(hand) - set(quads))), reverse=True)[:1]]
         elif hasTrips and hasPair: bestHand = [3, trips[:3] + pairs[:2]]
@@ -246,7 +222,6 @@ class Game:
         elif hasPair and len(pairs) > 2: bestHand = [7, pairs[:4] + sorted(list((set(hand) - set(pairs))), reverse=True)[:1]]
         elif hasPair: bestHand = [8, pairs[:2] + sorted(list((set(hand) - set(pairs))), reverse=True)[:3]]
         else:
-            self.highCards += 1
             bestHand = [9, hand[:5]]
         return bestHand
     
@@ -256,35 +231,41 @@ class Game:
         self.pot = self.bigBlind + self.smallBlind
         self.currentBet = self.bigBlind - self.smallBlind
         
-        self.printOutput("Player " + str(self.button + 1) + " posts " + str(self.smallBlind) + " chips")
-        self.printOutput("Player " + str((self.button + 1) % 2 + 1) + " posts " + str(self.bigBlind) + " chips")
+        self.printOutput("Player " + str(self.button) + " posts " + str(self.smallBlind) + " chips")
+        self.printOutput("Player " + str((self.button + 1) % 2) + " posts " + str(self.bigBlind) + " chips")
         self.printOutput("Pot: " + str(self.pot))
-        
+    
+
     def playerWinsChips(self, player):
-        self.printOutput("\nPlayer " + str(player+1) + " Wins " + str(self.pot) + " chips\n")
+        self.printOutput("\nPlayer " + str(player) + " Wins " + str(self.pot) + " chips\n")
         self.players[player].chips += self.pot
         self.pot = 0
         
         for i in range(len(self.players)):
-            self.printOutput("Player " + str(i+1) + ": " + str(self.players[i].chips) + " chips")
-        
-    def playerWins(self, player):
-        self.playerWinsChips(player)
-        
-        for x in range(2):
-            self.preflopHandsPlayed[14-self.startingHands[x][0].value][14-self.startingHands[x][1].value] += 1
-        self.preflopHandsWon[14-self.startingHands[player][0].value][14-self.startingHands[player][1].value] += 1
-        
+            self.printOutput("Player " + str(i) + ": " + str(self.players[i].chips) + " chips")
+    
+    def endHand(self, winningPlayer):                
+        for x in self.players:
+            winner = 0
+            if winningPlayer == x:
+                winner = 1
+            elif winningPlayer == .5:
+                winner = .5
+            x.handOver(self.handDict, winner)
+
+    def playerWins(self, winningPlayer):
+        self.playerWinsChips(winningPlayer)
+        self.handDict['Winner'] = winningPlayer
+        self.endHand(winningPlayer)
         #The preflop starting matrix stores unsuited hands below the diagonal for readability
         
     def draw(self):
+        self.handDict['Winner'] = .5
         self.printOutput("It's a Draw!")
         for x in range(len(self.players)):
             self.players[x].chips += self.pot/2
         self.pot = 0
-        for x in range(2):
-            self.preflopHandsPlayed[14-self.startingHands[x][0].value][14-self.startingHands[x][1].value] += 1
-            self.preflopHandsWon[14-self.startingHands[x][0].value][14-self.startingHands[x][1].value] += .5
+        self.endHand(.5)
     
     def clearHandData(self):
         self.hands = []
@@ -304,7 +285,9 @@ class Game:
 
         
     def newHandCleanup(self):
-        self.outputDict = {'Text' : '', 'PlayerCards': {0: [], 1: []}, 'CommunityCards': [], 'Betting': []}
+        self.handDict = {'HandNumber': self.handsPlayed, 'Text' : '', 'Pot': 0, 'States': [], 'Player Bets': {0: [], 1: []},
+        'RevealedCards': {0: [], 1: []}, 'CommunityCards': [], 'Betting': [], 'Bets': 1, 'Winner': None}
+        self.printOutput("Hand: " + str(self.handsPlayed) + "\n")
         self.button = (self.button + 1) % 2
         self.betAmount = 0
         self.pot = 0
@@ -312,8 +295,7 @@ class Game:
         self.clearHandData()
         self.deck.shuffle()
         self.handsPlayed += 1
-        for x in self.players:
-            x.newHand()
+    
         
     def nextHand(self):
         self.newHandCleanup()
@@ -328,10 +310,12 @@ class Game:
         self.printOutput("")
             
         for x in range(len(self.hands)):
-            self.printOutput('Player ' + str((x + 1)) + ": " + str([str(self.hands[x][0]), str(self.hands[x][1])]))
+            self.printOutput('Player ' + str(x) + ": " + str([str(self.hands[x][0]), str(self.hands[x][1])]))
         
         self.betOpportunity(self.button, None)
-        #if 'Fold' in self.outputDict['Betting']: return
+        if self.handDict['Winner'] != None:
+            return
+        #if 'Fold' in self.handDict['Betting']: return
         self.printOutput("Pot: " + str(self.pot))
 
         self.community = self.deck.deal(3)
@@ -351,7 +335,7 @@ class Game:
     
         for x in range(len(self.hands)):
             self.hands[x] = self.determineHand(self.hands[x])
-            self.printOutput("Player " + str(x+1) + " has " + self.handType[self.hands[x][0]] + ": " + str([str(card) for card in self.hands[x][1]]))
+            self.printOutput("Player " + str(x) + " has " + self.handType[self.hands[x][0]] + ": " + str([str(card) for card in self.hands[x][1]]))
 
             
         if self.hands[0][0] < self.hands[1][0]:
@@ -371,17 +355,22 @@ class Game:
         
         self.printOutput("----------------------------------------------------------------\n")
         
-        
-    #TODO
+    #Recursive function that keeps calling itself until both players have a chance to bet and one of them chooses not to
+    def storeState(self, playerNumber, action):
+        self.handDict['Player Bets'][playerNumber].append([self.handDict['Bets'], action])
+
     def betOpportunity(self, playerNumber, previousAction = None):
-        action = self.players[playerNumber].decide(previousAction, self.currentBet)
-        self.outputDict['Betting'].append(action)
+        action = self.players[playerNumber].decide(previousAction, self.handDict['Bets'], self.currentBet)
+        self.handDict['States'].append({'Player': playerNumber, })  
+        self.handDict['Betting'].append(action)
         otherPlayerNumber = (playerNumber+1)%2
+        self.storeState(playerNumber, action)
         if action == "Fold":
-            self.printOutput("Player " + str(playerNumber + 1) + " Folds")
-            self.playerWinsChips(otherPlayerNumber)   
+            self.printOutput("Player " + str(playerNumber) + " Folds")
+            self.playerWins(otherPlayerNumber) 
         elif action == "Raise" or action == 'Bet':
-            self.printOutput("Player " + str(playerNumber + 1) + " " + action + "s " + str(self.pot + self.currentBet) + " chips")
+            self.handDict['Bets'] += 1
+            self.printOutput("Player " + str(playerNumber) + " " + action + "s " + str(self.pot + self.currentBet) + " chips")
             self.players[playerNumber].chips -= self.currentBet
             self.pot += self.currentBet
             
@@ -391,11 +380,11 @@ class Game:
             
             self.betOpportunity(otherPlayerNumber, action)
         elif action == "Check":
-            self.printOutput("Player " + str(playerNumber + 1) + " Checks")
+            self.printOutput("Player " + str(playerNumber) + " Checks")
             if previousAction == None:
                 self.betOpportunity(otherPlayerNumber, action)
         elif action == "Call":
-            self.printOutput("Player " + str(playerNumber + 1) + " Calls " + str(self.currentBet) + " chips")
+            self.printOutput("Player " + str(playerNumber) + " Calls " + str(self.currentBet) + " chips")
             self.players[playerNumber].chips -= self.currentBet
             self.pot += self.currentBet
             self.currentBet = 0
