@@ -304,6 +304,7 @@ class Game:
             cards = sorted(cards, reverse= True)
             self.hands.append(cards)
             self.players[x].hand = cards
+            self.players[x].handStart()
             cards = sorted(cards, reverse= (cards[0].suit == cards[1].suit))
             self.startingHands.append(cards)
 
@@ -354,13 +355,13 @@ class Game:
                     self.draw()
         
         self.printOutput("----------------------------------------------------------------\n")
-        
-    #Recursive function that keeps calling itself until both players have a chance to bet and one of them chooses not to
+    
     def storeState(self, playerNumber, action):
         self.handDict['Player Bets'][playerNumber].append([self.handDict['Bets'], action])
 
+    #Recursive function that keeps calling itself until both players have a chance to bet and one of them chooses not to
     def betOpportunity(self, playerNumber, previousAction = None):
-        action = self.players[playerNumber].decide(previousAction, self.handDict['Bets'], self.currentBet)
+        action = self.players[playerNumber].decide(previousAction, self.handDict['Bets'], self.currentBet * 1./self.pot)
         self.handDict['States'].append({'Player': playerNumber, })  
         self.handDict['Betting'].append(action)
         otherPlayerNumber = (playerNumber+1)%2
