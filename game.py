@@ -314,6 +314,7 @@ class Game:
             self.printOutput('Player ' + str(x) + ": " + str([str(self.hands[x][0]), str(self.hands[x][1])]))
         
         self.betOpportunity(self.button, None)
+        
         if self.handDict['Winner'] != None:
             return
         #if 'Fold' in self.handDict['Betting']: return
@@ -391,4 +392,6 @@ class Game:
             self.currentBet = 0
             if previousAction == None:
                 self.betOpportunity(otherPlayerNumber, action)
+        else:
+            assert False
                 
