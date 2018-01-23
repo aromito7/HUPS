@@ -57,7 +57,7 @@ class Deck:
         self.value = [(i+11) % 13 + 2 for i in self.value]
         self.suit = ['clubs', 'spades', 'hearts', 'diamonds']
         
-        im = PIL.Image.open('../images/cards.png')
+        im = PIL.Image.open('../images/cards.gif')
         w,h = im.size
         imc = im.crop((12*w/13,3*h/4,w,h))
         
