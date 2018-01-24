@@ -277,6 +277,9 @@ class Player:
             if self.AIlevel == 1: return self.decideLevel1(previousAction, raiseAmount)
             elif self.AIlevel in [2]: return self.decideLevel2(previousAction, raiseAmount)
             elif self.AIlevel in [3]: return self.decideLevel3(previousAction, number_bets ,raiseAmount)
+        else:
+            return app.player_decide()
+
 
 def runHands(poker, hands = 10000):
     milestone = hands/10
@@ -313,5 +316,87 @@ def newNeuralTest():
 
     runHands(poker, hands)
 
-if __name__ == "__main__":
-    newNeuralTest()
+import tkinter as tk
+import PIL.Image, PIL.ImageTk
+
+if __name__ != "__main__":
+    player_vs_ai()
+
+def player_vs_ai():
+    Player0 = Player(True, 2)
+    Player1 = Player(False)
+    game = Game([Player0, Player1])
+
+    while True:
+        game.nextHand()
+
+def on_click(window, num):
+    #print 'You clicked: ' + window.decisions[num]
+    window.decision.set(window.decisions[num])
+
+class Window(tk.Frame):
+
+
+    def __init__(self, master=None):
+        tk.Frame.__init__(self, master)                 
+        self.master = master
+        self.init_window()
+        self.decision = tk.StringVar()
+        
+        '''
+        print("waiting...")
+        self.master.wait_variable(self.decision)
+        print("waiting again...")
+        self.master.wait_variable(self.decision)
+        print("done waiting")
+        '''
+
+    def player_decide(self):
+        self.master.wait_variable(self.decision)
+        return self.decision
+
+    #Creation of init_window
+        
+    def init_window(self):
+        self.decisions = ['Raise', 'Call', 'Check', 'Fold']
+        self.width, self.height = 600, 400  
+        canvas = tk.Canvas(width = self.width, height = self.height, bg = 'black')
+        canvas.pack(side=tk.TOP)
+        button_frame = tk.Frame(root)
+        button_frame.pack(side=tk.BOTTOM)
+        self.b = [None, None, None, None]
+        '''
+        b1, b2, b3, b4 = (Button(text="Raise"),
+                       Button(text="Call"),
+                       Button(text="Check"),
+                       Button(text="Fold"))
+        '''
+        for i in range(4):
+            self.b[i] = tk.Button(text=self.decisions[i], command=lambda i=i: on_click(self, i))
+            self.b[i].pack(side=tk.RIGHT)
+        
+
+        #canvas = Canvas(width = width, height = height, bg = 'black')
+        #canvas.pack(expand = YES, fill = BOTH)
+
+        deck = Deck()
+        self.card_back = PIL.ImageTk.PhotoImage(PIL.Image.open('../images/back.gif'))
+        self.cards = [[PIL.ImageTk.PhotoImage(deck.cards[1].image), PIL.ImageTk.PhotoImage(deck.cards[49].image)],
+                [PIL.ImageTk.PhotoImage(deck.cards[44].image), PIL.ImageTk.PhotoImage(deck.cards[45].image)]]
+        table = canvas.create_oval(2, 2, 600, 400, fill='green')
+        canvas.create_image(self.width/2-25, 60, image = self.card_back, anchor = tk.CENTER)
+        canvas.create_image(self.width/2+25, 60, image = self.card_back, anchor = tk.CENTER)
+        canvas.create_image(self.width/2-25, self.height-60, image = self.cards[1][0], anchor = tk.CENTER)
+        canvas.create_image(self.width/2+25, self.height-60, image = self.cards[1][1], anchor = tk.CENTER)
+        canvas.create_text(100, self.height-100, text='Chips: ')
+        canvas.create_text(100, self.height/2, text='Pot: ')
+        
+
+
+root = tk.Tk()
+
+#size of the window
+root.geometry("600x400")
+
+app = Window(root)
+root.mainloop()  
