@@ -10,7 +10,7 @@ My goal is to create an AI that uses a neural network and reinforcement learning
 What the program currently does is it allows you to play against my control AI as I'm still working on the learning algorithm for the other AI.
 
 The Control:
-My control AI that I'm using to train it uses an ordered dictionary of starting hands and their respective win percentages against a random hand in Texas Holdem.  The control AI folds a certain percentage of hands at the bottom of it's range when facing a raise, calls with a middle percentage, and re-raises with the top percentage of their range.  
+My control AI that I'm using for training utilizes an ordered dictionary of starting hands and their respective win percentages against a random hand in Texas Holdem.  The control AI folds a certain percentage of hands at the bottom of it's rangee, calls with a middle percentage, and re-raises with the top percentage of their range.  
 
 The Reinforcement Learning:
 The other AI being trained must learn how often certain hands win, how it's opponent is likely to react, and what it's optimal decision should be.  It currently only makes decisions based on the number of raises that have occurred so far and the rank of each card in it's hand.  This results in over 1,000 different states which would require millions of training hands being played to have a decent sample size of results for each state.  By applying a neural network we can get the optimal decision process to converge much faster.
