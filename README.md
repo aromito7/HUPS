@@ -3,7 +3,11 @@ Heads Up Poker Simulator
 
 Use python2.7 to run hups/hups.py
 
+![poker](https://user-images.githubusercontent.com/5891073/35404558-6495ae4a-01d1-11e8-8b47-b35f24e31fb2.jpg)
+
 My goal is to create an AI that uses a neural network and reinforcement learning to play heads up poker.  Currently it only simulates the preflop round of betting and then deals out and evaluates the hand if there isn't a fold.
+
+What the program currently does is it allows you to play against my control AI as I'm still working on the learning algorithm for the other AI.
 
 The Control:
 My control AI that I'm using to train it uses an ordered dictionary of starting hands and their respective win percentages against a random hand in Texas Holdem.  The control AI folds a certain percentage of hands at the bottom of it's range when facing a raise, calls with a middle percentage, and re-raises with the top percentage of their range.  
