@@ -8,6 +8,7 @@ from collections import OrderedDict
 from collections import Counter
 from dnn_app_utils_v2 import *
 from game import *
+import sys
 
 class Player:
     isAI = True
@@ -77,7 +78,7 @@ class Player:
         return preflopHandPercentage
     '''
     def handStart(self):
-        self.decision_text = ''        
+        self.decision_text = ''   
 
     def handOver(self, hand_info, percentWon):
         self.hands += 1
@@ -272,13 +273,16 @@ class Player:
 
             self.preflopHandOdds = OrderedDict(createPreflopOrderedRange(AL.reshape(13, 13)))
             '''
-    def decide(self, previousAction, number_bets , raiseAmount):
+    def decide(self, previousAction, number_bets , raiseAmount, game_state):
         if self.isAI:
             if self.AIlevel == 1: return self.decideLevel1(previousAction, raiseAmount)
             elif self.AIlevel in [2]: return self.decideLevel2(previousAction, raiseAmount)
             elif self.AIlevel in [3]: return self.decideLevel3(previousAction, number_bets ,raiseAmount)
         else:
-            return app.player_decide()
+            temp = app.player_decide(self, game_state).get()
+            if temp == 'QUIT':
+                sys.exit()
+            return temp
 
 
 def runHands(poker, hands = 10000):
@@ -319,9 +323,6 @@ def newNeuralTest():
 import tkinter as tk
 import PIL.Image, PIL.ImageTk
 
-if __name__ != "__main__":
-    player_vs_ai()
-
 def player_vs_ai():
     Player0 = Player(True, 2)
     Player1 = Player(False)
@@ -351,52 +352,77 @@ class Window(tk.Frame):
         print("done waiting")
         '''
 
-    def player_decide(self):
+    def player_decide(self, player, game_state):
+        app.render_game(player, game_state)
         self.master.wait_variable(self.decision)
         return self.decision
 
     #Creation of init_window
         
     def init_window(self):
-        self.decisions = ['Raise', 'Call', 'Check', 'Fold']
+        self.decisions = ['Fold', 'Call', 'Raise']
         self.width, self.height = 600, 400  
-        canvas = tk.Canvas(width = self.width, height = self.height, bg = 'black')
-        canvas.pack(side=tk.TOP)
+        self.b = []
+
+        self.canvas = tk.Canvas(width = self.width, height = self.height, bg = 'black')
+        self.canvas.pack(side=tk.TOP)
+
+        self.next_hand = tk.BooleanVar()
+        self.auto_next = tk.Checkbutton(self, text="Expand", variable=self.next_hand)
+
         button_frame = tk.Frame(root)
         button_frame.pack(side=tk.BOTTOM)
-        self.b = [None, None, None, None]
+
+        for i in range(len(self.decisions)):
+            self.b.append(tk.Button(text=self.decisions[i], command=lambda i=i: on_click(self, i)))
+            self.b[i].pack(side=tk.RIGHT)
+    
+        self.b.append(tk.Button(text='QUIT', command=lambda root=root:quit()))
+        self.b[len(self.b)-1].pack(side=tk.LEFT)
+        self.card_back = PIL.ImageTk.PhotoImage(PIL.Image.open('../images/back.gif'))
+    
+        deck = Deck()
         '''
         b1, b2, b3, b4 = (Button(text="Raise"),
                        Button(text="Call"),
                        Button(text="Check"),
                        Button(text="Fold"))
         '''
-        for i in range(4):
-            self.b[i] = tk.Button(text=self.decisions[i], command=lambda i=i: on_click(self, i))
-            self.b[i].pack(side=tk.RIGHT)
-        
+        #self.render_game()
 
-        #canvas = Canvas(width = width, height = height, bg = 'black')
-        #canvas.pack(expand = YES, fill = BOTH)
+    def render_game(self, player, game_state):
 
-        deck = Deck()
-        self.card_back = PIL.ImageTk.PhotoImage(PIL.Image.open('../images/back.gif'))
+        self.cards = [[self.card_back, self.card_back], [self.card_back, self.card_back]]
+
+        if player != None and player.hand != []:
+            self.cards[1] = [PIL.ImageTk.PhotoImage(player.hand[0].image), PIL.ImageTk.PhotoImage(player.hand[1].image)]
+
+        '''
         self.cards = [[PIL.ImageTk.PhotoImage(deck.cards[1].image), PIL.ImageTk.PhotoImage(deck.cards[49].image)],
                 [PIL.ImageTk.PhotoImage(deck.cards[44].image), PIL.ImageTk.PhotoImage(deck.cards[45].image)]]
-        table = canvas.create_oval(2, 2, 600, 400, fill='green')
-        canvas.create_image(self.width/2-25, 60, image = self.card_back, anchor = tk.CENTER)
-        canvas.create_image(self.width/2+25, 60, image = self.card_back, anchor = tk.CENTER)
-        canvas.create_image(self.width/2-25, self.height-60, image = self.cards[1][0], anchor = tk.CENTER)
-        canvas.create_image(self.width/2+25, self.height-60, image = self.cards[1][1], anchor = tk.CENTER)
-        canvas.create_text(100, self.height-100, text='Chips: ')
-        canvas.create_text(100, self.height/2, text='Pot: ')
+        '''
+
+        self.table = self.canvas.create_oval(2, 2, 600, 400, fill='green')
+        self.canvas.create_image(self.width/2-25, 60, image = self.card_back, anchor = tk.CENTER)
+        self.canvas.create_image(self.width/2+25, 60, image = self.card_back, anchor = tk.CENTER)
+        self.canvas.create_image(self.width/2-25, self.height-60, image = self.cards[1][0], anchor = tk.CENTER)
+        self.canvas.create_image(self.width/2+25, self.height-60, image = self.cards[1][1], anchor = tk.CENTER)
+        #if player != None:
+        self.canvas.create_text(100, self.height-100, text='Chips: ' + str(player.chips))
+        self.canvas.create_text(100, self.height/2, text='Pot: ' + str(game_state['Pot']))
         
 
 
 root = tk.Tk()
 
 #size of the window
-root.geometry("600x400")
+root.geometry("600x500")
+
+def quit():
+    app.decision.set('QUIT')
+    
+
 
 app = Window(root)
-root.mainloop()  
+if __name__ == "__main__":
+    player_vs_ai()

@@ -287,7 +287,7 @@ class Game:
     def newHandCleanup(self):
         self.handDict = {'HandNumber': self.handsPlayed, 'Text' : '', 'Pot': 0, 'States': [], 'Player Bets': {0: [], 1: []},
         'RevealedCards': {0: [], 1: []}, 'CommunityCards': [], 'Betting': [], 'Bets': 1, 'Winner': None}
-        self.printOutput("Hand: " + str(self.handsPlayed) + "\n")
+        self.printOutput("---------------------------------------------------------\nHand: " + str(self.handsPlayed) + "\n")
         self.button = (self.button + 1) % 2
         self.betAmount = 0
         self.pot = 0
@@ -354,16 +354,14 @@ class Game:
                     break;
                 elif x == len(self.hands[0][1]) - 1:
                     self.draw()
-        
-        self.printOutput("----------------------------------------------------------------\n")
     
     def storeState(self, playerNumber, action):
         self.handDict['Player Bets'][playerNumber].append([self.handDict['Bets'], action])
 
     #Recursive function that keeps calling itself until both players have a chance to bet and one of them chooses not to
     def betOpportunity(self, playerNumber, previousAction = None):
-        action = self.players[playerNumber].decide(previousAction, self.handDict['Bets'], self.currentBet * 1./self.pot)
-        self.handDict['States'].append({'Player': playerNumber, })  
+        self.handDict['Pot'] = self.pot
+        action = self.players[playerNumber].decide(previousAction, self.handDict['Bets'], self.currentBet * 1./self.pot, self.handDict)
         self.handDict['Betting'].append(action)
         otherPlayerNumber = (playerNumber+1)%2
         self.storeState(playerNumber, action)
@@ -381,14 +379,17 @@ class Game:
             self.players[playerNumber].chips -= self.currentBet
             
             self.betOpportunity(otherPlayerNumber, action)
+            '''
         elif action == "Check":
             self.printOutput("Player " + str(playerNumber) + " Checks")
             if previousAction == None:
                 self.betOpportunity(otherPlayerNumber, action)
-        elif action == "Call":
-            self.printOutput("Player " + str(playerNumber) + " Calls " + str(self.currentBet) + " chips")
+            '''
+        elif action == "Call" or action == "Check":
+            self.printOutput("Player " + str(playerNumber) + " " + action + "s " + str(self.currentBet) + " chips")
             self.players[playerNumber].chips -= self.currentBet
             self.pot += self.currentBet
+
             self.currentBet = 0
             if previousAction == None:
                 self.betOpportunity(otherPlayerNumber, action)
