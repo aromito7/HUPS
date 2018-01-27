@@ -59,7 +59,7 @@ class Player:
         self.isAI = isAI
         self.AIlevel = AIlevel
         if isAI:
-            self.preflopHandOdds = OrderedDict(createPreflopOrderedRange(np.loadtxt("data", unpack=True)))
+            self.preflopHandOdds = OrderedDict(createPreflopOrderedRange(np.loadtxt("../data/data", unpack=True)))
             self.currentRange = self.preflopHandOdds
     '''
     def resetStatisticalData(self):
